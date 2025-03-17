@@ -1,21 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #define RED 1
 #define BLACK 0
-struct Node
-{
+
+struct Node {
     int key;
     struct Node *left, *right, *parent;
     int color;
 };
-struct RBTree
-{
+
+struct RBTree {
     struct Node *root;
     struct Node *nil;
 };
-struct Node *createNode(struct RBTree *T, int key)
-{
-    struct Node *node = (struct Node *)malloc(sizeof(struct Node));
+
+struct Node *createNode(struct RBTree *T, int key) {
+    struct Node *node = (struct Node *)calloc(1, sizeof(struct Node));
+    if (!node) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
     node->key = key;
     node->left = T->nil;
     node->right = T->nil;
@@ -23,72 +28,54 @@ struct Node *createNode(struct RBTree *T, int key)
     node->color = RED;
     return node;
 }
-void leftRotate(struct RBTree *T, struct Node *x)
-{
+
+void leftRotate(struct RBTree *T, struct Node *x) {
     struct Node *y = x->right;
     x->right = y->left;
-    if (y->left != T->nil)
-    {
+    if (y->left != T->nil) {
         y->left->parent = x;
     }
     y->parent = x->parent;
-    if (x->parent == T->nil)
-    {
+    if (x->parent == T->nil) {
         T->root = y;
-    }
-    else if (x == x->parent->left)
-    {
+    } else if (x == x->parent->left) {
         x->parent->left = y;
-    }
-    else
-    {
+    } else {
         x->parent->right = y;
     }
     y->left = x;
     x->parent = y;
 }
-void rightRotate(struct RBTree *T, struct Node *y)
-{
+
+void rightRotate(struct RBTree *T, struct Node *y) {
     struct Node *x = y->left;
     y->left = x->right;
-    if (x->right != T->nil)
-    {
+    if (x->right != T->nil) {
         x->right->parent = y;
     }
     x->parent = y->parent;
-    if (y->parent == T->nil)
-    {
+    if (y->parent == T->nil) {
         T->root = x;
-    }
-    else if (y == y->parent->right)
-    {
+    } else if (y == y->parent->right) {
         y->parent->right = x;
-    }
-    else
-    {
+    } else {
         y->parent->left = x;
     }
     x->right = y;
     y->parent = x;
 }
-void RBInsertFixup(struct RBTree *T, struct Node *z)
-{
-    while (z->parent->color == RED)
-    {
-        if (z->parent == z->parent->parent->left)
-        {
+
+void RBInsertFixup(struct RBTree *T, struct Node *z) {
+    while (z->parent->color == RED) {
+        if (z->parent == z->parent->parent->left) {
             struct Node *y = z->parent->parent->right;
-            if (y->color == RED)
-            {
+            if (y->color == RED) {
                 z->parent->color = BLACK;
                 y->color = BLACK;
                 z->parent->parent->color = RED;
                 z = z->parent->parent;
-            }
-            else
-            {
-                if (z == z->parent->right)
-                {
+            } else {
+                if (z == z->parent->right) {
                     z = z->parent;
                     leftRotate(T, z);
                 }
@@ -96,21 +83,15 @@ void RBInsertFixup(struct RBTree *T, struct Node *z)
                 z->parent->parent->color = RED;
                 rightRotate(T, z->parent->parent);
             }
-        }
-        else
-        {
+        } else {
             struct Node *y = z->parent->parent->left;
-            if (y->color == RED)
-            {
+            if (y->color == RED) {
                 z->parent->color = BLACK;
                 y->color = BLACK;
                 z->parent->parent->color = RED;
                 z = z->parent->parent;
-            }
-            else
-            {
-                if (z == z->parent->left)
-                {
+            } else {
+                if (z == z->parent->left) {
                     z = z->parent;
                     rightRotate(T, z);
                 }
@@ -122,33 +103,24 @@ void RBInsertFixup(struct RBTree *T, struct Node *z)
     }
     T->root->color = BLACK;
 }
-void RBInsert(struct RBTree *T, struct Node *z)
-{
+
+void RBInsert(struct RBTree *T, struct Node *z) {
     struct Node *y = T->nil;
     struct Node *x = T->root;
-    while (x != T->nil)
-    {
+    while (x != T->nil) {
         y = x;
-        if (z->key < x->key)
-        {
+        if (z->key < x->key) {
             x = x->left;
-        }
-        else
-        {
+        } else {
             x = x->right;
         }
     }
     z->parent = y;
-    if (y == T->nil)
-    {
+    if (y == T->nil) {
         T->root = z;
-    }
-    else if (z->key < y->key)
-    {
+    } else if (z->key < y->key) {
         y->left = z;
-    }
-    else
-    {
+    } else {
         y->right = z;
     }
     z->left = T->nil;
@@ -156,25 +128,32 @@ void RBInsert(struct RBTree *T, struct Node *z)
     z->color = RED;
     RBInsertFixup(T, z);
 }
-struct RBTree *initializeRBTree()
-{
-    struct RBTree *T = (struct RBTree *)malloc(sizeof(struct RBTree));
-    T->nil = (struct Node *)malloc(sizeof(struct Node));
+
+struct RBTree *initializeRBTree() {
+    struct RBTree *T = (struct RBTree *)calloc(1, sizeof(struct RBTree));
+    if (!T) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
+    T->nil = (struct Node *)calloc(1, sizeof(struct Node));
+    if (!T->nil) {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
     T->nil->color = BLACK;
     T->root = T->nil;
     return T;
 }
-void inorder(struct RBTree *T, struct Node *n)
-{
-    if (n != T->nil)
-    {
-        printf("%d ", n->key);
+
+void inorder(struct RBTree *T, struct Node *n) {
+    if (n != T->nil) {
         inorder(T, n->left);
+        printf("%d ", n->key);
         inorder(T, n->right);
     }
 }
-int main()
-{
+
+int main() {
     struct RBTree *T = initializeRBTree();
     RBInsert(T, createNode(T, 40));
     RBInsert(T, createNode(T, 20));
